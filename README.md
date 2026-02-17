@@ -1,5 +1,5 @@
 # Missing Semester Lab
-👉 进入：ms-04-data-wrangling/notes/ms4.md
+➡️ MS4 Notes: [ms-04-data-wrangling/notes/ms4.md](ms-04-data-wrangling/notes/ms4.md)
 
 
 A reproducible learning log for MIT Missing Semester.
