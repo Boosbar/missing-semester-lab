@@ -1,0 +1,3 @@
+{"ts":"2026-02-17T10:02:10Z","lvl":"WARN","mod":"net","ip":"10.0.0.2","err":"timeout","retry":1}
+{"ts":"2026-02-17T10:02:11Z","lvl":"WARN","mod":"net","ip":"10.0.0.2","err":"timeout","retry":2}
+{"ts":"2026-02-17T10:03:22Z","lvl":"ERROR","mod":"net","ip":"10.0.0.3","err":"conn_refused","retry":0}

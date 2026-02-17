@@ -1,0 +1,8 @@
+2026-02-17T10:01:03Z INFO auth ip=10.0.0.1 user=alice action=login
+2026-02-17T10:02:10Z WARN net ip=10.0.0.2 err=timeout retry=1
+2026-02-17T10:02:11Z WARN net ip=10.0.0.2 err=timeout retry=2
+2026-02-17T10:03:22Z ERROR net ip=10.0.0.3 err=conn_refused retry=0
+2026-02-17T10:04:00Z INFO db q=select_ms cost_ms=12
+2026-02-17T10:04:02Z INFO db q=select_ms cost_ms=18
+2026-02-17T10:05:01Z ERROR auth ip=10.0.0.4 user=bob action=login err=bad_password
+2026-02-17T10:06:30Z WARN net ip=10.0.0.2 err=timeout retry=3
