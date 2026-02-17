@@ -324,28 +324,9 @@ git commit -m "MS4: scripts + cheatsheet"
 
 ```
 
-![image-20260217130204575](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217130204575.png)
-
-![image-20260217135425471](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217135425471.png)
-
-![image-20260217135454265](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217135454265.png)
 
 > 核心套路：**filter → extract → aggregate → inspect**  
 > 统一习惯：输入进 `data/`，脚本进 `scripts/`，输出进 `work/`（可重建）。
->
-> 
-
-![image-20260217135442968](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217135442968.png)
-
-![image-20260217140136877](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217140136877.png)
-
-![image-20260217140648300](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217140648300.png)
-
-![image-20260217140858843](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217140858843.png)
-
-![image-20260217141130387](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217141130387.png)
-
-![image-20260217141149808](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217141149808.png)
 
 
-![image-20260217141203614](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260217141203614.png)
+
