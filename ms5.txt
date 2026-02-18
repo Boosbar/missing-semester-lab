@@ -1,0 +1,311 @@
+
+
+# MS5 Command-line Environment（WSL）
+
+> 1) ls：只要前 N 行 / TopN
+
+```
+ls -1 | head -n 10          # 前 10 个条目（按行）
+ls -1a | head -n 10         # 含隐藏文件
+ls -1t | head -n 10         # 按修改时间（最新优先）
+ls -lh | head -n 10         # 长格式（注意这里是行截断，不是文件数）
+```
+
+> 备注：目录为空时 `ls` 不输出任何行，是正常行为；要看到隐藏项用 `ls -la`。
+>
+> 2.
+>
+> 2) Vim：不保存退出 / 跳转 / hjkl / 目录浏览（netrw）
+>
+> 不保存退出
+>
+> ```
+> :q!        " 放弃改动退出当前窗口
+> :qa!       " 放弃所有改动退出所有窗口
+> ```
+>
+> ### 直接到最后一行/指定行
+>
+> ```
+> G          " 最后一行
+> gg         " 第一行
+> 120G       " 跳到第 120 行
+> ```
+>
+> ### hjkl 基础移动（普通模式下）
+>
+> - `h` 左，`j` 下，`k` 上，`l` 右
+>
+> > 如果你按 `j/k` 变成输入字符，说明还在 Insert 模式；先 `Esc` 回到普通模式。
+>
+> ### `vim .` 看到的 `~` 是什么？
+>
+> - `vim .` 打开的是 **netrw 目录列表**（不是文件内容）
+> - 一堆 `~` 只是 Vim 用来填充空白行的显示，不是文件
+>
+> netrw 常用键：
+>
+> - `Enter` 进入目录 / 打开文件
+> - `-` 返回上级目录
+> - `q` 退出 netrw
+> - `D` 删除，`R` 重命名，`%` 新建文件，`d` 新建目录
+>
+> 
+
+3) Job control：后台、前台、信号
+
+### 常用动作
+
+```
+sleep 300
+# Ctrl+Z  挂起（stopped）
+
+jobs       # 列出当前 shell 的作业
+bg %1      # 让 job 1 后台运行
+fg %1      # 拉回前台
+```
+
+### 结束作业 / 发信号
+
+```
+kill %1                # 默认 SIGTERM
+kill -STOP %1          # 暂停
+kill -CONT %1          # 继续
+kill -HUP  %1          # SIGHUP（常见于断开终端）
+kill -KILL %1          # 强杀（最后手段）
+```
+
+> “退出不了 shell”经常就是有 `Stopped` 作业卡着：`jobs -l` 看一眼。
+
+------
+
+## 4) tmux：（nested / attach / switch / prefix）
+
+### 4.1 配置生效确认
+
+你已经确认前缀是 `Ctrl-a`：
+
+```
+tmux show -g prefix
+# prefix C-a
+```
+
+### 4.2 为什么 `tmux a -t ...` 总提示 nested？
+
+当你看到：
+
+```
+sessions should be nested with care, unset $TMUX to force
+```
+
+含义是：**你当前这个终端已经在某个 tmux client 里了**（环境变量 `$TMUX` 已设置）。
+ 此时再 `tmux a` 会被视为“嵌套 tmux”。
+
+快速判定：
+
+```
+echo "$TMUX"
+tmux display-message -p '#S:#I.#P'    # 能输出 = 你就在 tmux 里
+```
+
+### 4.3 正确姿势：在 tmux 内切 session，用 switch-client（不要 attach）
+
+你当前 `tmux ls` 看到：
+
+- `0`
+- `1 (attached)`  ← 你就在 `1`
+
+所以要切到 `0`：
+
+```
+tmux switch-client -t 0
+```
+
+切回：
+
+```
+tmux switch-client -t 1
+```
+
+交互选择（最省脑子）：
+
+- `Ctrl-a w`（choose-tree）
+
+### 4.4 想回到普通 shell（不杀会话）：detach
+
+- `Ctrl-a d`
+
+detach 后才能在 shell 里：
+
+```
+tmux a -t 0
+```
+
+### 4.5 “foobar 不存在”怎么处理？
+
+你 `tmux ls` 里没有 foobar，所以 `tmux a -t foobar` 本来就不可能成功。
+
+把 session `1` 改名为 `foobar`：
+
+```
+tmux rename-session -t 1 foobar
+```
+
+以后最省事的一条命令（有就进，没有就建）：
+
+```
+tmux new -As foobar
+```
+
+### 4.6 pane / window 基本操作（按你当前 Ctrl-a 前缀）
+
+- 新窗口：`Ctrl-a c`
+- 上/下一个窗口：`Ctrl-a p` / `Ctrl-a n`
+- 关闭 pane：`Ctrl-a x`（或 pane 内 `exit` / `Ctrl-d`）
+- 退出 tmux（保活）：`Ctrl-a d`
+
+> 你之前“按了很多 `Ctrl-b c` 卡住”的高概率原因：误触 `Ctrl-s` 暂停输出；恢复用 `Ctrl-q`，并建议 `stty -ixon`。
+
+### 4.7 tmux 配置文件到底在哪里？（为什么不在 ~/.config）
+
+tmux 默认找：
+
+- `~/.tmux.conf`（你现在就是这个路径）
+- 可能还会有系统级 `/etc/tmux.conf`（看发行版）
+
+如果你想把“真实配置”迁到 `~/.config/tmux/tmux.conf`（XDG 风格），建议这样做（兼容 tmux 默认加载点）：
+
+```
+mkdir -p ~/.config/tmux
+mv ~/.tmux.conf ~/.config/tmux/tmux.conf
+printf 'source-file ~/.config/tmux/tmux.conf\n' > ~/.tmux.conf
+tmux source-file ~/.tmux.conf
+```
+
+------
+
+## 5) dotfiles：统一管理思路（可版本化、可复制）
+
+核心原则：**把配置集中到一个仓库，用 symlink 铺到系统期望的位置**。
+
+示例（仅示意）：
+
+```
+mkdir -p ~/repos/dotfiles/tmux
+cp ~/.tmux.conf ~/repos/dotfiles/tmux/tmux.conf
+
+ln -sf ~/repos/dotfiles/tmux/tmux.conf ~/.tmux.conf
+```
+
+“本机私有配置”不要进 Git：用 include 机制（以 git 为例）：
+
+```
+# ~/.gitconfig
+[include]
+    path = ~/.gitconfig_local
+```
+
+------
+
+## 6) Shell 启动链：bashrc / profile / zshrc（以及“exit 退不掉”）
+
+### 6.1 你到底在用哪个 shell？
+
+```
+echo "$SHELL"     # 默认登录 shell
+echo "$0"         # 当前 shell 名称（常用）
+ps -p $$ -o args= # 当前进程参数（更准）
+```
+
+### 6.2 bash 启动文件最常见分工
+
+- 交互式非登录：`~/.bashrc`
+- 登录 shell：`~/.profile` 或 `~/.bash_profile`（择一）
+
+一个稳妥做法：让 `~/.profile` 也加载 `~/.bashrc`（避免“登录 shell 不吃 alias”）：
+
+```
+# ~/.profile
+if [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi
+```
+
+### 6.3 为什么 `exit/quit` 关不了 WSL？
+
+通常三类根因（今天你基本都遇过）：
+
+1. **你还在 tmux/vim/less**
+
+- tmux：`Ctrl-a d` 先 detach
+- vim：`:qa!`
+- less/man：`q`
+
+1. **多层 shell（SHLVL>1）**：`exit` 只退一层
+
+```
+echo $SHLVL
+# 用 Ctrl-d 多按几次退到最外层
+```
+
+1. **有挂起作业（Stopped jobs）**：bash 会阻止退出
+
+```
+jobs -l
+# kill / fg 后再退出
+```
+
+最后手段（Windows 侧）：
+
+```
+wsl --shutdown
+```
+
+------
+
+## 7) grep：用于“定位配置写在哪个文件”
+
+单文件：
+
+```
+grep -n "prefix" ~/.tmux.conf
+```
+
+多文件/递归（定位“是谁设置了 TMUX / 自动进 tmux / stty -ixon”等）：
+
+```
+grep -Rni "tmux" ~/.bashrc ~/.profile ~/.zshrc 2>/dev/null
+grep -Rni "TMUX" ~/.bashrc ~/.profile ~/.zshrc 2>/dev/null
+grep -Rni "stty -ixon" ~/.bashrc ~/.profile ~/.zshrc 2>/dev/null
+```
+
+只列命中文件名：
+
+```
+grep -Rl "tmux" ~ 2>/dev/null | head
+```
+
+------
+
+## 8) 字体/字号在哪里改？（结论：不在 tmux）
+
+字号是 **终端模拟器**的职责，不是 tmux。
+
+- Windows Terminal：Profile → Appearance → Font size
+- VS Code：`terminal.integrated.fontSize`
+
+tmux 能做的是：颜色/状态栏/键位/鼠标等，不负责字体渲染。
+
+------
+
+## 9) 高频错误清单（今天实锤版）
+
+- 看到 nested 警告还在 `tmux a`：应该 **`tmux switch-client`** 或先 **detach** 再 attach
+- session 名不对：`tmux ls` 只有 `0/1`，却去 `-t foobar`（必失败）
+- prefix 混乱：配置改成 `C-a`，却一直按 `C-b`
+- “tmux 卡住”：误触 `Ctrl-s` 暂停输出 → `Ctrl-q`；建议永久 `stty -ixon`
+- `ls` 没输出就怀疑异常：目录为空 / 只有隐藏文件（用 `ls -la`）
+- `vim .` 以为是文件：其实是 netrw 浏览；`~` 不是文件
+- 删目录：空目录优先 `rmdir`，别上来 `rm -rf`
+
+![image-20260218144706166](C:/Users/ROG/AppData/Roaming/Typora/typora-user-images/image-20260218144706166.png)
